@@ -1,7 +1,6 @@
 import numpy as np 
 from scipy.fft import fft
 import math
-
 # returns sample i for a blackman window of size n
 # param[in] i: sample index
 # param[in] n: size of the window
