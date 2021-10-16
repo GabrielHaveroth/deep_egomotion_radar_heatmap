@@ -82,6 +82,7 @@ cnn2 = create_heatmap_feature_extrator(input2)
 combined_cnn = layers.concatenate([cnn1, cnn2])
 # Translation regressor
 fc_trans = layers.Dense(128, activation='relu')(combined_cnn)  # tanh
+fc_trans = layers.Dropout(0.25)(fc_trans)
 fc_trans = layers.Dense(64, activation='relu')(fc_trans)
 fc_trans = layers.Dense(3, activation='relu', name='fc_trans')(fc_trans)
 # Rotation regressor
