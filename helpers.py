@@ -1,6 +1,6 @@
 from scipy.spatial.transform import Rotation, Slerp
-from tensorflow.python.keras.backend import reshape, shape
 from geometric_operations import *
+from dataset_loaders import *
 import scipy
 import scipy.ndimage
 
@@ -59,7 +59,7 @@ def interpolate_poses(src_poses, src_stamps, tgt_stamps):
 
 
 def polar2cartesian(outcoords, inputshape, origin):
-    """Coordinate transform for converting a polar array to Cartesian coordinates. 
+    """Coordinate transform for converting a polar array to Cartesian coordinates.
     inputshape is a tuple containing the shape of the polar array. origin is a
     tuple containing the x and y indices of where the origin should be in the
     output array."""
@@ -104,6 +104,21 @@ def get_cartesian_slice_heatmap(radar_heatmap):
         (cartesian_heatmap_power, cartesian_heatmap_doppler), axis=-1)
     return cartesian_heatmap
 
+def get_cartesian_heatmap(radar_heatmap):
+    radar_heatmap_power = radar_heatmap[:, :, :, 0].mean(axis=0)
+    # for idx in range(0, 32):
+    #     cartesian_heatmap_power = scipy.ndimage.geometric_transform(radar_heatmap_power[idx], polar2cartesian, order=3,
+    #                                                                 output_shape=(radar_heatmap_power[idx].shape[0],
+    #                                                                               radar_heatmap_power[idx].shape[1]),
+    #                                                                 extra_keywords={'inputshape': radar_heatmap_power[idx].shape,
+    #                                                                                 'origin': (radar_heatmap_power[idx].shape[0], radar_heatmap_power[idx].shape[1] / 2)})
+    cartesian_heatmap_power = scipy.ndimage.geometric_transform(radar_heatmap_power, polar2cartesian, order=3,
+                                                                output_shape=(radar_heatmap_power.shape[0],
+                                                                              radar_heatmap_power.shape[1]),
+                                                                extra_keywords={'inputshape': radar_heatmap_power.shape,
+                                                                                'origin': (radar_heatmap_power.shape[0], radar_heatmap_power.shape[1] / 2)})
+    return cartesian_heatmap_power
+
 
 def get_range_azimute_slice_heatmap(radar_heatmap):
     return radar_heatmap[16, :, :, :]
@@ -111,3 +126,33 @@ def get_range_azimute_slice_heatmap(radar_heatmap):
 
 def get_range_elevation_slice_heatmap(radar_heatmap):
     return radar_heatmap[:, 64, :, :]
+
+
+def get_heatmap_poses(name, ht_params):
+    gt_poses = get_groundtruth(name)
+    radar_timestamps = get_timestamps(name, ht_params)
+    gt_timestamps = get_timestamps(name, ht_params)
+    radar_gt, _ = interpolate_poses(gt_poses,
+                                    gt_timestamps,
+                                    radar_timestamps)
+
+    return radar_gt
+
+
+def get_data_3D_heatmap_batch_gt(row, ht_params, poses_seq):
+    seq = row['file']
+    pair = row['heatmap_pair']
+    poses = poses_seq[seq]
+    power_hm_t1 = get_heatmap(pair[0], seq, ht_params)
+    power_hm_t1 = (power_hm_t1[:, :, :, 0].reshape(
+        (32, 128, 128, 1)) - MIN_POWER) / (MAX_POWER - MIN_POWER)
+    radar_hm_t2 = get_heatmap(pair[1], seq, ht_params)
+    power_hm_t2 = (radar_hm_t2[:, :, :, 0].reshape(
+        (32, 128, 128, 1)) - MIN_POWER) / (MAX_POWER - MIN_POWER)
+    power_hm_t12 = np.concatenate([power_hm_t1,
+                                   power_hm_t2], -1)
+    delta_pose, _ = get_ground_6d_poses_euler(poses[pair[0]],
+                                               poses[pair[1]])
+    # delta_rot.append(delta_pose[0:3])
+    # delta_trans.append(delta_pose[3:])
+    return power_hm_t12, delta_pose
