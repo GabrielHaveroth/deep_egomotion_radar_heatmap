@@ -1,7 +1,6 @@
-import numpy as np 
+import numpy as np
 import struct
 import os
-
 
 # reads raw adc data from bin file 
 # param[in] index: index of the requested frame
@@ -43,6 +42,7 @@ def get_adc_frame(index, seq_dir, params):
 #           with dimensions num_elevation_bins * num_azimuth_bins * num_range_bins * 2
 #           where each elevation-azimuth-range bin has 2 values: the peak intensity and
 #           the peak location for the doppler spectrum for that bin
+# @tf.function
 def get_heatmap(index, seq_dir, params):
 
   if params['sensor_type'] == 'cascade':
@@ -56,6 +56,8 @@ def get_heatmap(index, seq_dir, params):
 
   with open(filename, mode='rb') as file: 
     frame_bytes = file.read()
+    # frame_bytes = tf.io.read_file(filename)
+
 
   frame_vals = struct.unpack(str(len(frame_bytes) // 4)+'f', frame_bytes)
   frame_vals = np.array(frame_vals)
