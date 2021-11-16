@@ -1,18 +1,38 @@
-from tensorflow.python.keras.regularizers import get
-from data_loader import *
+from helpers import interpolate_poses
 from dataset_loaders import *
+import numpy as np
+import pandas as pd
 
 
 def get_closest_value(arr: np.array, value) -> int:
     idx = (np.abs(arr - value)).argmin()
     return idx
 
-# Loading dataset
-calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
-seqs = ['2_22_2021_longboard_run7/', '2_23_2021_edgar_classroom_run5/']
-path = '/data/Conjuntos_Dados_Mestrado/'
-file_name_metadata = './models/train'
-
+# Put her seqs to generate train metadata
+TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
+              "12_21_2020_ec_hallways_run2",
+              "12_21_2020_ec_hallways_run3",
+              "12_21_2020_ec_hallways_run4",
+              "12_21_2020_arpg_lab_run0",
+              "12_21_2020_arpg_lab_run1",
+              "12_21_2020_arpg_lab_run2",
+              "12_21_2020_arpg_lab_run3",
+              "2_23_2021_edgar_classroom_run0",
+              "2_23_2021_edgar_classroom_run1",
+              "2_23_2021_edgar_classroom_run3",
+              "2_23_2021_edgar_classroom_run4",
+              "2_23_2021_edgar_classroom_run5",
+              "2_22_2021_longboard_run2",
+              "2_22_2021_longboard_run3",
+              "2_22_2021_longboard_run4",
+              "2_22_2021_longboard_run5",
+              "2_22_2021_longboard_run6",
+              "2_22_2021_longboard_run7"]
+calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
+seqs = TRAIN_SEQS
+# Path to dataset
+path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
+file_name_metadata = './metadata/train'
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
 
@@ -29,7 +49,7 @@ imu_points = []
 neast_imu_points = {}
 
 for seq in seqs:
-    name = path + seq
+    name = path_data + seq
     gt_params = get_groundtruth_params()
     radar_timestamps = get_timestamps(name, radar_heatmap_params)
     gt_timestamps = get_timestamps(name, gt_params)
@@ -56,13 +76,14 @@ for seq in seqs:
             if MIN_TIME_BETWEEN_PAIR <= timestamp_diff <= MAX_TIME_BETWEEN_PAIR:
                 pairs.append((radar_indices[i], radar_indices[j]))
                 files.append(name)
-                imu_points.append(neast_imu_points[radar_indices[j]])
+                imu_points.append((neast_imu_points[radar_indices[i]], 
+                                   neast_imu_points[radar_indices[j]]))
                 if unique_pair:
                     break
 
-data['heatmap_pair'] = pairs
+data['heatmap_pairs'] = pairs
 data['file'] = files
-data['imu_points'] = imu_points
+data['imu_pairs'] = imu_points
 df_data = pd.DataFrame(data)
 df_data.to_pickle(file_name_metadata + '.pkl')
 
