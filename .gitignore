@@ -2,3 +2,4 @@
 .devcontainer/devcontainer.json
 ./*.pkl
 ./*.npy
+Dockerfile
