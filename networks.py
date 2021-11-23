@@ -34,10 +34,10 @@ def build_6D_pose_regressor(sensor_features: layers.Flatten()) -> Tuple[layers.D
     fc_trans = layers.Dense(128, activation='relu')(sensor_features)  # tanh
     fc_trans = layers.Dropout(0.25)(fc_trans)
     fc_trans = layers.Dense(64, activation='relu')(fc_trans)
-    fc_trans = layers.Dense(3, activation='relu', name='fc_trans')(fc_trans)
+    fc_trans = layers.Dense(3, activation='linear', name='fc_trans')(fc_trans)
     # Rotation regressor
     fc_rot = layers.Dense(128, activation='relu')(sensor_features)  # tanh
     fc_rot = layers.Dropout(0.25)(fc_rot)
     fc_rot = layers.Dense(64, activation='relu')(fc_rot)
-    fc_rot = layers.Dense(3, activation='relu', name='fc_rot')(fc_rot)
+    fc_rot = layers.Dense(3, activation='linear', name='fc_rot')(fc_rot)
     return fc_trans, fc_rot
