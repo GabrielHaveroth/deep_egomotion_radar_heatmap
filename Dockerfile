@@ -15,5 +15,14 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 RUN groupmod --gid $USER_GID $USERNAME \
     && usermod --uid $USER_UID --gid $USER_GID $USERNAME \
-    && chown -R $USER_UID:$USER_GID /home/$USERNAME
+    && chown -R $USER_UID:$USER_GID /home/$USERNAME 
+    # && apt-get install python3-scipy -y sudo 
+
 USER $USERNAME
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir transformations \
+    && pip install --no-cache-dir scipy==1.5.2 \
+    && pip install --no-cache-dir pandas \
+    && pip install --no-cache-dir matplotlib \
+    && pip install --no-cache-dir scikit-learn
