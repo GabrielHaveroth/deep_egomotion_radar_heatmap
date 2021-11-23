@@ -2,3 +2,5 @@
 .devcontainer/devcontainer.json
 ./*.pkl
 ./*.npy
+models/test.pkl
+models/train.pkl
