@@ -28,7 +28,7 @@ def create_heatmap_feature_extrator(input):
 
 # Loading dataset
 seqs = ['2_22_2021_longboard_run7/', '2_23_2021_edgar_classroom_run5/']
-path = '/data/Conjuntos_Dados_Mestrado/'
+base_path = '/home/lactec/dados/mestrado_gabriel/'
 all_radar_params = get_cascade_params('/data/Conjuntos_Dados_Mestrado/calib')
 radar_heatmap_params = all_radar_params['heatmap']
 MIN_TIME_BETWEEN_PAIR = 0.4
