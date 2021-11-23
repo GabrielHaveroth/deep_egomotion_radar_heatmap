@@ -87,6 +87,19 @@ def get_ground_6d_poses_quat(SE1, SE2):
     return np.concatenate((quat, pos)), SE12    # qxyz
 
 
+def get_6D_poses_from_matrix(SE):
+    pos = np.array([SE[0][3], SE[1][3], SE[2][3]])
+    angles = rotation_matrix_to_euler_angles(SE[:3, :3])
+    return np.concatenate((angles, pos))
+
+
+def get_matrix_from_6D_relative_pose(angles, pos):
+    T12 = euler_matrix(angles[0], angles[1], angles[2])
+    T12[:3, 3] = pos
+    return T12
+
+
+
 """
 # Example of usage
 >>> alpha1, beta1, gamma1 = 0.123, -1.234, 2.34
@@ -101,6 +114,6 @@ alpha2, beta2, gamma2 = 0.130, -1.134, 3.14
 >>> delta_pose, T12 = get_ground_6d_poses_euler(T1, T2)
 >>> T12 = reorthogonalize_SE3(T12)
 # Calculating the pose in relation the initial state
->>> abs_pose = reorthogonalize_SE3(T1.dot(T12)) 
+>>> abs_pose = reorthogonalize_SE3(.) 
 # abs_pose[:3, 3] = np.array([0, 0, 0])
 >>> print(euler_from_matrix(T1.dot(T12))) """
