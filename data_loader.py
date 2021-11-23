@@ -92,7 +92,7 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
             delta_poses = []
             hm_powers_t12 = []
             with mp.Pool(mp.cpu_count()) as pool:
-                results_async = [pool.apply_async(get_data_3D_heatmap_batch_gt, args=(
+                results_async = [pool.apply_async(get_data_3D_heatmap_gt, args=(
                     row, self.hm_params, poses_seq, )) for _, row in batches.iterrows()]
                 for result in results_async:
                     hm_power_t12, delta_pose = result.get()
@@ -104,7 +104,23 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
             X_batch_power_heatmap = np.array(hm_powers_t12)
             data_batch = [X_batch_power_heatmap, [y_batch_trans, y_batch_rot]]
 
+        elif self.data_type == '2d_cart_heatmap':
+            delta_poses = []
+            hm_powers_t12 = []
+            with mp.Pool(mp.cpu_count()) as pool:
+                results_async = [pool.apply_async(get_data_2D_cart_heatmap_gt, args=(
+                    row, self.hm_params, poses_seq, )) for _, row in batches.iterrows()]
+                for result in results_async:
+                    hm_power_t12, delta_pose = result.get()
+                    delta_poses.append(delta_pose)
+                    hm_powers_t12.append(hm_power_t12)
+
+            delta_poses = np.asarray(delta_poses)
+            y_batch_trans = delta_poses[:, 3:4].copy()  # just x and y
+            y_batch_rot = delta_poses[:, 3].copy()  # just yaw
+            X_batch_power_heatmap = np.array(hm_powers_t12)
+            data_batch = [X_batch_power_heatmap, [y_batch_trans, y_batch_rot]]
+
         X_batch = data_batch[0]
-        print(type(X_batch))
         y_batch = data_batch[1]
         return X_batch, y_batch
