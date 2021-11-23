@@ -142,7 +142,7 @@ def get_heatmap_poses(name, ht_params):
 
 def get_data_3D_heatmap_batch_gt(row, ht_params, poses_seq):
     seq = row['file']
-    pair = row['heatmap_pair']
+    pair = row['heatmap_pairs']
     poses = poses_seq[seq]
     power_hm_t1 = get_heatmap(pair[0], seq, ht_params)
     power_hm_t1 = (power_hm_t1[:, :, :, 0].reshape(
