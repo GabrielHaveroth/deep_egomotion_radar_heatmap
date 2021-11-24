@@ -5,3 +5,9 @@
 models/test.pkl
 models/train.pkl
 Dockerfile
+results/history.pkl
+results/loss.npy
+results/poses.npy
+loss.npy
+poses.npy
+angles.npy
