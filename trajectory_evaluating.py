@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-df_test_data = pd.read_pickle('./models/test.pkl')
+df_test_data = pd.read_pickle('./metadata/test.pkl')
 valid_pairs = []
 names = list(df_test_data['file'].unique())
 calib_path = '/mnt/Share_Data/Conjuntos_Dados_Mestrado/calib'
@@ -57,6 +57,9 @@ for delta_pose, delta_angle in zip(poses_pred, angles_pred):
     abs_poses_pred.append(get_6D_poses_from_matrix(T_p_pred)[3:])
 abs_poses_pred = np.array(abs_poses_pred)
 # Plot results predict
-plt.plot(abs_poses[:, 0], abs_poses_pred[:, 1])
-plt.plot(abs_poses[:, 0], abs_poses[:, 1])
+# plt.plot(abs_poses[:, 0], abs_poses_pred[:, 1])
+# plt.plot(abs_poses[:, 0], abs_poses[:, 1])
+
+plt.plot(poses_all[:, 5])
+plt.plot(poses_pred[:, 2])
 plt.show()
