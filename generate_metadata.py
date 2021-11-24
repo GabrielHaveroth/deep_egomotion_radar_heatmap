@@ -41,7 +41,6 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
 TEST_SEQS = ["2_28_2021_outdoors_run5",
              "2_28_2021_outdoors_run6"]
 
-calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 
 if TYPE == 'TRAIN':
     seqs = TRAIN_SEQS
@@ -53,9 +52,7 @@ elif TYPE == 'TEST':
 # Path to dataset
 path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
 # Loading dataset
-calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
-path = '/data/Conjuntos_Dados_Mestrado'
-
+calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
 
@@ -72,7 +69,7 @@ imu_data = []
 neast_imu_data = {}
 
 for seq in seqs:
-    name = path + seq
+    name = path_data + seq
     gt_params = get_groundtruth_params()
     radar_timestamps = get_timestamps(name, radar_heatmap_params)
     gt_timestamps = get_timestamps(name, gt_params)

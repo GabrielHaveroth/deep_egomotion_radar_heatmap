@@ -15,3 +15,4 @@ visualize_data.py
 metadata/train.pkl
 nohup.out
 metadata/test.pkl
+./__pyche__
