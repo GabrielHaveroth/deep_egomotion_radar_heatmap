@@ -12,3 +12,8 @@ loss.npy
 poses.npy
 angles.npy
 visualize_data.py
+metadata/train.pkl
+metadata/test.pkl
+__pycache__/helpers.cpython-36.pyc
+__pycache__/dataset_loaders.cpython-36.pyc
+__pycache__/geometric_operations.cpython-36.pyc
