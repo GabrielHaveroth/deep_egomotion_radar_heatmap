@@ -7,6 +7,39 @@ def get_closest_value(arr: np.array, value) -> int:
     idx = (np.abs(arr - value)).argmin()
     return idx
 
+# Put her seqs to generate train metadata
+TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
+              "12_21_2020_ec_hallways_run2",
+              "12_21_2020_ec_hallways_run3",
+              "12_21_2020_ec_hallways_run4",
+              "12_21_2020_arpg_lab_run0",
+              "12_21_2020_arpg_lab_run1",
+              "12_21_2020_arpg_lab_run2",
+              "12_21_2020_arpg_lab_run3",
+              "2_23_2021_edgar_classroom_run0",
+              "2_23_2021_edgar_classroom_run1",
+              "2_23_2021_edgar_classroom_run3",
+              "2_23_2021_edgar_classroom_run4",
+              "2_23_2021_edgar_classroom_run5",
+              "2_22_2021_longboard_run2",
+              "2_22_2021_longboard_run3",
+              "2_22_2021_longboard_run4",
+              "2_22_2021_longboard_run5",
+              "2_22_2021_longboard_run6",
+              "2_22_2021_longboard_run7",
+              "2_28_2021_outdoors_run0",
+              "2_28_2021_outdoors_run1",
+              "2_28_2021_outdoors_run2",
+              "2_28_2021_outdoors_run3",
+              "2_28_2021_outdoors_run4",
+              "2_28_2021_outdoors_run7",
+              "2_28_2021_outdoors_run8",
+              "2_28_2021_outdoors_run9"]
+calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
+seqs = TRAIN_SEQS
+# Path to dataset
+path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
+file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/train'
 # Loading dataset
 calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
 seqs = ['/2_28_2021_outdoors_run5']
@@ -85,4 +118,5 @@ data['file'] = files
 # data['imu_data'] = imu_data
 df_data = pd.DataFrame(data)
 df_data.to_pickle(file_name_metadata + '.pkl')
+print(df_data)
 print(df_data)
