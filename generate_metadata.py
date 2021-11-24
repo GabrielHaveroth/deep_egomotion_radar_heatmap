@@ -7,6 +7,7 @@ def get_closest_value(arr: np.array, value) -> int:
     idx = (np.abs(arr - value)).argmin()
     return idx
 
+TYPE = "TRAIN"
 # Put her seqs to generate train metadata
 TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "12_21_2020_ec_hallways_run2",
@@ -35,16 +36,25 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "2_28_2021_outdoors_run7",
               "2_28_2021_outdoors_run8",
               "2_28_2021_outdoors_run9"]
+
+# Put her seqs to generate TEST metadata
+TEST_SEQS = ["2_28_2021_outdoors_run5",
+             "2_28_2021_outdoors_run6"]
+
 calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
-seqs = TRAIN_SEQS
+
+if TYPE == 'TRAIN':
+    seqs = TRAIN_SEQS
+    file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/train'
+elif TYPE == 'TEST':
+    seqs = TEST_SEQS
+    file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/test'
+
 # Path to dataset
 path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
-file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/train'
 # Loading dataset
 calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
-seqs = ['/2_28_2021_outdoors_run5']
 path = '/data/Conjuntos_Dados_Mestrado'
-file_name_metadata = './models/test'
 
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
@@ -93,30 +103,28 @@ for seq in seqs:
                 imu_data.append(neast_imu_data[radar_indices[j]])
                 if unique_pair:
                     break
-
-valid_pairs = []
-valid_files = []
-valid_imu_data = []
-for idx, pair in enumerate(pairs):
-    if idx == 0:
-        last_pose_idx = pair[1]
-        valid_pairs.append(pair)
-        valid_files.append(files[idx])
-        valid_imu_data.append(imu_data[idx])
-    else:
-        if last_pose_idx == pair[0]:
+if TYPE == "TEST":
+    valid_pairs = []
+    valid_files = []
+    valid_imu_data = []
+    for idx, pair in enumerate(pairs):
+        if idx == 0:
+            last_pose_idx = pair[1]
             valid_pairs.append(pair)
             valid_files.append(files[idx])
             valid_imu_data.append(imu_data[idx])
-            last_pose_idx = pair[1]
+        else:
+            if last_pose_idx == pair[0]:
+                valid_pairs.append(pair)
+                valid_files.append(files[idx])
+                valid_imu_data.append(imu_data[idx])
+                last_pose_idx = pair[1]
 
-pairs = valid_pairs
-files = valid_files
+        pairs = valid_pairs
+        files = valid_files
 # imu_data = valid_imu_data
 data['heatmap_pairs'] = pairs
 data['file'] = files
 # data['imu_data'] = imu_data
 df_data = pd.DataFrame(data)
 df_data.to_pickle(file_name_metadata + '.pkl')
-print(df_data)
-print(df_data)
