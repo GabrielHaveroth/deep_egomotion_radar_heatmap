@@ -27,12 +27,20 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "2_22_2021_longboard_run4",
               "2_22_2021_longboard_run5",
               "2_22_2021_longboard_run6",
-              "2_22_2021_longboard_run7"]
+              "2_22_2021_longboard_run7",
+              "2_28_2021_outdoors_run0",
+              "2_28_2021_outdoors_run1",
+              "2_28_2021_outdoors_run2",
+              "2_28_2021_outdoors_run3",
+              "2_28_2021_outdoors_run4",
+              "2_28_2021_outdoors_run7",
+              "2_28_2021_outdoors_run8",
+              "2_28_2021_outdoors_run9"]
 calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 seqs = TRAIN_SEQS
 # Path to dataset
 path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
-file_name_metadata = './metadata/train'
+file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/train'
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
 
@@ -86,4 +94,4 @@ data['file'] = files
 data['imu_pairs'] = imu_points
 df_data = pd.DataFrame(data)
 df_data.to_pickle(file_name_metadata + '.pkl')
-
+print(df_data)
