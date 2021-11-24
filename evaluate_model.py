@@ -6,7 +6,7 @@ import networks as nets
 from helpers import *
 model_path = ""
 results_path = "./results"
-old_model = tf.keras.models.load_model('/data/weights-020-0.0046.hdf5')
+old_model = tf.keras.models.load_model('/data/weights-046-0.0050.hdf5')
 df_data = pd.read_pickle('./models/test.pkl')
 all_radar_params = get_cascade_params('/data/Conjuntos_Dados_Mestrado/calib')
 radar_heatmap_params = all_radar_params['heatmap']
@@ -16,9 +16,8 @@ teste_gen = RadarEgomotionDataGenerator(df_data,
                                         data_type='3d_heatmap', shuffle=False)
 
 
-poses_seq = dict()
-names = list(df_data['file'].unique())
-
+# poses_seq = dict()
+# names = list(df_data['file'].unique())
 # with mp.Pool(mp.cpu_count()) as pool:
 #     results = [pool.apply_async(get_heatmap_poses, args=(name, radar_heatmap_params)) for name in names]
 #     for r, name in zip(results, names):
@@ -41,7 +40,7 @@ rms_prop = RMSprop(learning_rate=0.00001, rho=0.9, epsilon=1e-08, decay=0.0)
 model.compile(optimizer=rms_prop, loss={'fc_trans': 'mse', 'fc_rot': 'mse'})
 model.set_weights(weights)
 y_pred = model.predict(teste_gen, batch_size=1, verbose=1)
-loss = model.evaluate(teste_gen, batch_size=1, verbose=1)
+# loss = model.evaluate(teste_gen, batch_size=1, verbose=1)
 print('-------Salving results--------')
 with open('poses.npy', 'wb') as f:
     np.save(f, y_pred[0])
