@@ -11,3 +11,4 @@ results/poses.npy
 loss.npy
 poses.npy
 angles.npy
+visualize_data.py
