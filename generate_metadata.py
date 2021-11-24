@@ -1,6 +1,5 @@
-from helpers import interpolate_poses
 from dataset_loaders import *
-import numpy as np
+from helpers import *
 import pandas as pd
 
 
@@ -41,6 +40,12 @@ seqs = TRAIN_SEQS
 # Path to dataset
 path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
 file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/train'
+# Loading dataset
+calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
+seqs = ['/2_28_2021_outdoors_run5']
+path = '/data/Conjuntos_Dados_Mestrado'
+file_name_metadata = './models/test'
+
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
 
@@ -53,11 +58,11 @@ unique_pair = True
 data = {}
 pairs = []
 files = []
-imu_points = []
-neast_imu_points = {}
+imu_data = []
+neast_imu_data = {}
 
 for seq in seqs:
-    name = path_data + seq
+    name = path + seq
     gt_params = get_groundtruth_params()
     radar_timestamps = get_timestamps(name, radar_heatmap_params)
     gt_timestamps = get_timestamps(name, gt_params)
@@ -75,7 +80,8 @@ for seq in seqs:
                                  for idx in radar_indices]
     # Take neast imu points to heatmaps timestamp
     for idx, radar_timestamp in enumerate(selected_timestamps_radar):
-        neast_imu_points[radar_indices[idx]] = get_closest_value(imu_timestamps, radar_timestamp)
+        neast_imu_data[radar_indices[idx]] = get_closest_value(
+            imu_timestamps, radar_timestamp)
 
     for i in range(len(selected_timestamps_radar)):
         for j in range(i + 1, len(selected_timestamps_radar)):
@@ -84,14 +90,33 @@ for seq in seqs:
             if MIN_TIME_BETWEEN_PAIR <= timestamp_diff <= MAX_TIME_BETWEEN_PAIR:
                 pairs.append((radar_indices[i], radar_indices[j]))
                 files.append(name)
-                imu_points.append((neast_imu_points[radar_indices[i]], 
-                                   neast_imu_points[radar_indices[j]]))
+                imu_data.append(neast_imu_data[radar_indices[j]])
                 if unique_pair:
                     break
 
+valid_pairs = []
+valid_files = []
+valid_imu_data = []
+for idx, pair in enumerate(pairs):
+    if idx == 0:
+        last_pose_idx = pair[1]
+        valid_pairs.append(pair)
+        valid_files.append(files[idx])
+        valid_imu_data.append(imu_data[idx])
+    else:
+        if last_pose_idx == pair[0]:
+            valid_pairs.append(pair)
+            valid_files.append(files[idx])
+            valid_imu_data.append(imu_data[idx])
+            last_pose_idx = pair[1]
+
+pairs = valid_pairs
+files = valid_files
+# imu_data = valid_imu_data
 data['heatmap_pairs'] = pairs
 data['file'] = files
-data['imu_pairs'] = imu_points
+# data['imu_data'] = imu_data
 df_data = pd.DataFrame(data)
 df_data.to_pickle(file_name_metadata + '.pkl')
+print(df_data)
 print(df_data)

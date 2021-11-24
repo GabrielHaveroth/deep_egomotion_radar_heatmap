@@ -2,4 +2,15 @@
 .devcontainer/devcontainer.json
 ./*.pkl
 ./*.npy
+models/test.pkl
+models/train.pkl
 Dockerfile
+results/history.pkl
+results/loss.npy
+results/poses.npy
+loss.npy
+poses.npy
+angles.npy
+visualize_data.py
+metadata/train.pkl
+nohup.out
