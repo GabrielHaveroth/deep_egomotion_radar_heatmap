@@ -40,7 +40,7 @@ rms_prop = RMSprop(learning_rate=0.00001, rho=0.9, epsilon=1e-08, decay=0.0)
 model.compile(optimizer=rms_prop, loss={'fc_trans': 'mse', 'fc_rot': 'mse'})
 model.set_weights(weights)
 y_pred = model.predict(teste_gen, batch_size=1, verbose=1)
-# loss = model.evaluate(teste_gen, batch_size=1, verbose=1)
+loss = model.evaluate(teste_gen, batch_size=1, verbose=1)
 print('-------Salving results--------')
 with open('poses.npy', 'wb') as f:
     np.save(f, y_pred[0])
