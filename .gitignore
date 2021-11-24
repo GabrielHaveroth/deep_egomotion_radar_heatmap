@@ -4,3 +4,4 @@
 ./*.npy
 models/test.pkl
 models/train.pkl
+Dockerfile

@@ -9,6 +9,7 @@ from scipy.spatial.transform import Rotation, Slerp
 from geometric_operations import *
 import pandas as pd
 import multiprocessing as mp
+import time
 MAX_HEATMAP = np.array([MAX_POWER, MAX_DOPPLER])
 MIN_HEATMAP = np.array([MIN_POWER, MIN_DOPPLER])
 
@@ -89,6 +90,7 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
 
         # Get the original 3D power heatmap elev x azim x range
         elif self.data_type == '3d_heatmap':
+            # start = time.time()
             delta_poses = []
             hm_powers_t12 = []
             with mp.Pool(mp.cpu_count()) as pool:
@@ -123,4 +125,6 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
 
         X_batch = data_batch[0]
         y_batch = data_batch[1]
+        # print("..........................\n")
+        # print("Time to charge data: {}".format(time.time() - start))
         return X_batch, y_batch

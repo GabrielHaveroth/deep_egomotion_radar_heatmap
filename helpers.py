@@ -7,8 +7,8 @@ import multiprocessing as mp
 import numpy as np
 import pandas as pd
 
-MAX_POWER = 4268728.0
-MIN_POWER = 3.081555128097534
+MAX_POWER = 4815355.5
+MIN_POWER = 0.01419168058782816
 MAX_DOPPLER = 1.1527502536773682
 MIN_DOPPLER = -1.317428708076477
 
@@ -20,6 +20,7 @@ def interpolate_poses(src_poses, src_stamps, tgt_stamps):
     tgt_end_idx = len(tgt_stamps) - 1
 
     # ensure first source timestamp is immediately before first target timestamp
+
     while tgt_start_idx < tgt_end_idx and tgt_stamps[tgt_start_idx] < src_stamps[src_start_idx]:
         tgt_start_idx += 1
 
