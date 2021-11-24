@@ -8,9 +8,9 @@ def get_closest_value(arr: np.array, value) -> int:
     return idx
 
 # Loading dataset
-calib_path = '/mnt/Share_Data/Conjuntos_Dados_Mestrado/calib'
-seqs = ['2_28_2021_outdoors_run1']
-path = '/mnt/Share_Data/Conjuntos_Dados_Mestrado/'
+calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
+seqs = ['/2_28_2021_outdoors_run5']
+path = '/data/Conjuntos_Dados_Mestrado'
 file_name_metadata = './models/test'
 
 all_radar_params = get_cascade_params(calib_path)
