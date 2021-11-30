@@ -169,18 +169,35 @@ def get_data_3D_batch_gt(batches, hm_params, poses_seq):
     return delta_poses, hm_powers_t12
 
 
-def get_data_2D_cart_heatmap_gt(row, ht_params, poses_seq):
+def get_data_2D_cart_heatmap(row, ht_params):
     seq = row['file']
     pair = row['heatmap_pairs']
-    poses = poses_seq[seq]
     power_hm_t1 = (get_heatmap(pair[0], seq, ht_params)[:, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
     cart_hm_t1 = get_cartesian_heatmap(power_hm_t1).reshape((128, 128, 1))
     power_hm_t2 = (get_heatmap(pair[1], seq, ht_params)[:, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
     cart_hm_t2 = get_cartesian_heatmap(power_hm_t2).reshape((128, 128, 1))
     cart_hm_t12 = np.concatenate([cart_hm_t1,
                                   cart_hm_t2], -1)
-    delta_pose, _ = get_ground_6d_poses_euler(poses[pair[0]],
-                                              poses[pair[1]])
-    # delta_rot.append(delta_pose[0:3])
-    # delta_trans.append(delta_pose[3:])]
-    return cart_hm_t12, delta_pose
+    
+    return cart_hm_t12
+
+def get_2D_delta_poses(pairs, poses):
+    T_p = np.identity(4)
+    abs_poses_gt = [np.zeros((6))] # zero as init position
+    for pair in pairs:
+        t1_idx = pair[0]
+        t2_idx = pair[1]
+        pose_t1 = poses[t1_idx]
+        pose_t2 = poses[t2_idx]
+        _, T_p_12 = get_ground_6d_poses_euler(pose_t1,
+                                              pose_t2)
+
+        T_p = T_p.dot(T_p_12)
+        abs_poses_gt.append(get_6D_poses_from_matrix(T_p))
+
+    abs_poses = np.array(abs_poses_gt)
+    delta_poses_gt = abs_poses[1:, 3:5] - abs_poses[0:-1, 3:5]
+    delta_thetas_gt = abs_poses[1:, 2] - abs_poses[0:-1, 2]
+    delta_thetas_gt = delta_thetas_gt.reshape(len(delta_thetas_gt), 1)
+
+    return np.concatenate([delta_poses_gt, delta_thetas_gt], axis=1)
