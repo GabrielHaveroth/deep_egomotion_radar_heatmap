@@ -10,6 +10,7 @@ from geometric_operations import *
 import pandas as pd
 import multiprocessing as mp
 import time
+import pickle 
 MAX_HEATMAP = np.array([MAX_POWER, MAX_DOPPLER])
 MIN_HEATMAP = np.array([MIN_POWER, MIN_DOPPLER])
 
@@ -50,7 +51,7 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
 
     def __get_data(self, batches: pd.DataFrame):
         names = list(batches['file'].unique())
-        # Generates data containing batch_size samples
+        # Generates data containing batch_size sampldelta_poseses
         poses_seq = self.__get_gt_pose_by_file(names)
         delta_trans = []
         delta_rot = []
@@ -110,16 +111,22 @@ class RadarEgomotionDataGenerator(keras.utils.Sequence):
             delta_poses = []
             hm_powers_t12 = []
             with mp.Pool(mp.cpu_count()) as pool:
-                results_async = [pool.apply_async(get_data_2D_cart_heatmap_gt, args=(
-                    row, self.hm_params, poses_seq, )) for _, row in batches.iterrows()]
+                results_async = [pool.apply_async(get_data_2D_cart_heatmap, args=(row, self.hm_params, )) for _, row in batches.iterrows()]
                 for result in results_async:
-                    hm_power_t12, delta_pose = result.get()
-                    delta_poses.append(delta_pose)
+                    hm_power_t12 = result.get()
                     hm_powers_t12.append(hm_power_t12)
+            delta_poses = batches['delta_poses_2D'].values.copy()
+            delta_poses_arr = []
+            for delta_p in delta_poses:
+                delta_p = np.array(delta_p)
+                delta_poses_arr.append(delta_p)
 
-            delta_poses = np.asarray(delta_poses)
-            y_batch_trans = delta_poses[:, 3:4].copy()  # just x and y
-            y_batch_rot = delta_poses[:, 3].copy()  # just yaw
+            delta_poses_arr = np.array(delta_poses_arr)
+            scaler = pickle.load(open('scaler.pkl', 'rb'))
+            delta_poses_arr = np.asarray(delta_poses_arr)
+            delta_poses_arr = scaler.transform(delta_poses_arr)
+            y_batch_trans = delta_poses_arr[:, 0:2].copy()  # just x and y
+            y_batch_rot = delta_poses_arr[:, 2].copy()  # just yaw
             X_batch_power_heatmap = np.array(hm_powers_t12)
             data_batch = [X_batch_power_heatmap, [y_batch_trans, y_batch_rot]]
 
