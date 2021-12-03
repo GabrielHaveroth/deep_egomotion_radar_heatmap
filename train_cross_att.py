@@ -47,19 +47,6 @@ y_val = [y_trans_val, y_rot_val]
 X_train = [heatmaps_train, imu_data_train]
 X_val = [heatmaps_val, imu_data_val]
 
-# train_df, val_df = train_test_split(df_data, test_size=0.10, random_state=42)
-
-# train_gen = RadarEgomotionDataGenerator(df_data,
-#                                         all_radar_params,
-#                                         batch_size=32,
-#                                         data_type='2d_cart_heatmap')
-
-# val_gen = RadarEgomotionDataGenerator(val_df,
-#                                       all_radar_params,
-#                                       batch_size=32,
-#                                       data_type='2d_cart_heatmap')
-
-# Creating checkpoint to save the best model
 MODELS_FOLDER = './models'
 checkpoint_folder = os.path.sep.join(
     [MODELS_FOLDER, "weights-{epoch:03d}-{val_loss:.4f}.hdf5"])
