@@ -1,14 +1,24 @@
 from dataset_loaders import *
 from helpers import *
 import pandas as pd
-
+from sklearn.preprocessing import MinMaxScaler
+import pickle
 
 def get_closest_value(arr: np.array, value) -> int:
     idx = (np.abs(arr - value)).argmin()
     return idx
 
-TYPE = "TRAIN"
+# Options
+USE_SCALER = True
+TYPE = "TEST"
+MIN_TIME_BETWEEN_PAIR = 0.4
+MAX_TIME_BETWEEN_PAIR = 1
+UNIQUE_PAIR = True
+USE_TEMPORAL_ORDER = True
+
+
 # Put her seqs to generate train metadata
+
 TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "12_21_2020_ec_hallways_run2",
               "12_21_2020_ec_hallways_run3",
@@ -17,6 +27,14 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "12_21_2020_arpg_lab_run1",
               "12_21_2020_arpg_lab_run2",
               "12_21_2020_arpg_lab_run3",
+              "2_28_2021_outdoors_run0",
+              "2_28_2021_outdoors_run1",
+              "2_28_2021_outdoors_run2",
+              "2_28_2021_outdoors_run3",
+              "2_28_2021_outdoors_run4",
+              "2_28_2021_outdoors_run7",
+              "2_28_2021_outdoors_run8",
+              "2_28_2021_outdoors_run9",
               "2_23_2021_edgar_classroom_run0",
               "2_23_2021_edgar_classroom_run1",
               "2_23_2021_edgar_classroom_run3",
@@ -27,25 +45,16 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "2_22_2021_longboard_run4",
               "2_22_2021_longboard_run5",
               "2_22_2021_longboard_run6",
-              "2_22_2021_longboard_run7",
-              "2_28_2021_outdoors_run0",
-              "2_28_2021_outdoors_run1",
-              "2_28_2021_outdoors_run2",
-              "2_28_2021_outdoors_run3",
-              "2_28_2021_outdoors_run4",
-              "2_28_2021_outdoors_run7",
-              "2_28_2021_outdoors_run8",
-              "2_28_2021_outdoors_run9"]
+              "2_22_2021_longboard_run7"]
 
 # Put her seqs to generate TEST metadata
-TEST_SEQS = ["2_28_2021_outdoors_run5",
-             "2_28_2021_outdoors_run6"]
+TEST_SEQS = ["2_28_2021_outdoors_run5"]
 
-calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 
 if TYPE == 'TRAIN':
     seqs = TRAIN_SEQS
     file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/train'
+    
 elif TYPE == 'TEST':
     seqs = TEST_SEQS
     file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/test'
@@ -53,26 +62,25 @@ elif TYPE == 'TEST':
 # Path to dataset
 path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
 # Loading dataset
-calib_path = '/data/Conjuntos_Dados_Mestrado/calib'
-path = '/data/Conjuntos_Dados_Mestrado'
-
+calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
 
-MIN_TIME_BETWEEN_PAIR = 0.4
-MAX_TIME_BETWEEN_PAIR = 1
-TRAIN_PERCENTAGE = 1
 
-init_time_stamp = 0
-unique_pair = True
+imu_pairs = []
+all_files = []
+all_pairs = []
+all_imu_pairs = []
 data = {}
-pairs = []
-files = []
-imu_data = []
 neast_imu_data = {}
+all_delta_poses_2D = []
 
 for seq in seqs:
-    name = path + seq
+    pairs = []
+    files = []
+    imu_pairs = []
+    delta_poses_2D = []
+    name = path_data + seq
     gt_params = get_groundtruth_params()
     radar_timestamps = get_timestamps(name, radar_heatmap_params)
     gt_timestamps = get_timestamps(name, gt_params)
@@ -90,41 +98,58 @@ for seq in seqs:
                                  for idx in radar_indices]
     # Take neast imu points to heatmaps timestamp
     for idx, radar_timestamp in enumerate(selected_timestamps_radar):
-        neast_imu_data[radar_indices[idx]] = get_closest_value(
-            imu_timestamps, radar_timestamp)
+        neast_imu_data[idx] = get_closest_value(imu_timestamps, radar_timestamp)
 
     for i in range(len(selected_timestamps_radar)):
         for j in range(i + 1, len(selected_timestamps_radar)):
-            timestamp_diff = round(
-                selected_timestamps_radar[j] - selected_timestamps_radar[i], 2)
+            timestamp_diff = round(selected_timestamps_radar[j] - selected_timestamps_radar[i], 2)
             if MIN_TIME_BETWEEN_PAIR <= timestamp_diff <= MAX_TIME_BETWEEN_PAIR:
-                pairs.append((radar_indices[i], radar_indices[j]))
+                pairs.append((i, j))
+                imu_pairs.append((neast_imu_data[i], neast_imu_data[j]))
                 files.append(name)
-                imu_data.append(neast_imu_data[radar_indices[j]])
-                if unique_pair:
+                if UNIQUE_PAIR:
                     break
-if TYPE == "TEST":
-    valid_pairs = []
-    valid_files = []
-    valid_imu_data = []
-    for idx, pair in enumerate(pairs):
-        if idx == 0:
-            last_pose_idx = pair[1]
-            valid_pairs.append(pair)
-            valid_files.append(files[idx])
-            valid_imu_data.append(imu_data[idx])
-        else:
-            if last_pose_idx == pair[0]:
+                
+    if USE_TEMPORAL_ORDER:            
+        valid_pairs = []
+        valid_files = []
+        valid_imu_pairs = []
+        for idx, pair in enumerate(pairs):
+            if idx == 0:
+                last_pose_idx = pair[1]
                 valid_pairs.append(pair)
                 valid_files.append(files[idx])
-                valid_imu_data.append(imu_data[idx])
-                last_pose_idx = pair[1]
-
+                valid_imu_pairs.append(imu_pairs[idx])
+            else:
+                if last_pose_idx == pair[0]:
+                    valid_pairs.append(pair)
+                    valid_files.append(files[idx])
+                    valid_imu_pairs.append(imu_pairs[idx])
+                    last_pose_idx = pair[1]
+        # Replace for just valid pairs for test [(0, 1), (1, 2), ...]           
         pairs = valid_pairs
         files = valid_files
-# imu_data = valid_imu_data
-data['heatmap_pairs'] = pairs
-data['file'] = files
-# data['imu_data'] = imu_data
+        imu_pairs = valid_imu_pairs
+        delta_poses_2D = get_2D_delta_poses(pairs, radar_gt)
+    all_files = all_files + files
+    all_pairs = all_pairs + pairs
+    all_imu_pairs = all_imu_pairs + imu_pairs
+    all_delta_poses_2D = all_delta_poses_2D + delta_poses_2D.tolist()
+
+if TYPE == 'TRAIN':
+    scaler = MinMaxScaler(np.array(all_delta_poses_2D))
+    pickle.dump(scaler, open('scaler.pkl', 'wb'))
+
+data['heatmap_pairs'] = all_pairs
+data['file'] = all_files
+data['imu_data'] = all_imu_pairs
+data['delta_poses_2D'] = all_delta_poses_2D
 df_data = pd.DataFrame(data)
+delta_poses = df_data['delta_poses_2D'].values.copy()
+delta_poses_arr = []
+for delta_p in delta_poses:
+    delta_p = np.array(delta_p)
+    delta_poses_arr.append(delta_p)    
+delta_poses_arr = np.array(delta_poses_arr)
+print(delta_poses_arr)
 df_data.to_pickle(file_name_metadata + '.pkl')
