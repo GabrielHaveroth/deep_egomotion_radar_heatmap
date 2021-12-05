@@ -41,6 +41,26 @@ y_rot_val = y_val[:, 2]
 y_rot_train = y_train[:, 2]
 y_trans_val = y_val[:, 0:2]
 y_trans_train = y_train[:, 0:2]
+# all_radar_params = get_cascade_params('/home/lactec/dados/mestrado_gabriel/calib')
+# radar_heatmap_params = all_radar_params['heatmap']
+df_data = pd.read_pickle('./metadata/train.pkl')
+delta_poses = df_data['delta_poses_6D'].values.copy()
+y = []
+for delta_pose in delta_poses:
+    y.append(delta_pose)
+y = np.array(y)
+
+heatmaps = np.load('/data/heatmap.npy')
+imu_data = np.load('/data/imu.npy')
+
+# scaler = pickle.load(open('scaler.pkl', 'rb'))
+# delta_poses_arr = scaler.transform(delta_poses_arr)
+
+heatmaps_train, heatmaps_val, imu_data_train, imu_data_val, y_train, y_val = train_test_split(heatmaps, imu_data, y, test_size=0.1, random_state=42)
+y_rot_val = y_val[:, 0:3]
+y_rot_train = y_train[:, 0:3]
+y_trans_val = y_val[:, 3:]
+y_trans_train = y_train[:, 3:]
 y_train = [y_trans_train, y_rot_train]
 y_val = [y_trans_val, y_rot_val]
 X_train = [heatmaps_train, imu_data_train]

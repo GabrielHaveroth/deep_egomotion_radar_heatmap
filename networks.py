@@ -177,6 +177,10 @@ def build_model_cross_att(imu_length, input_heatmap, mask_att='sigmoid', istrain
 
     # Selective features
     forward_lstm_1 = layers.LSTM(512, dropout_W=0.25, return_sequences=True, name='forward_lstm_1')(
+    merge_features = layers.concatenate([cross_visual_fea, cross_imu_fea], axis=-1)
+
+    # Selective features
+    forward_lstm_1 = layers.LSTM(512, dropout=0.25, return_sequences=True, name='forward_lstm_1')(
         merge_features)  # dropout_W=0.2, dropout_U=0.2
     forward_lstm_2 = layers.LSTM(512, return_sequences=True, name='forward_lstm_2')(forward_lstm_1)
 
