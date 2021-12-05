@@ -48,12 +48,12 @@ TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
               "2_22_2021_longboard_run7"]
 
 # Put her seqs to generate TEST metadata
-TEST_SEQS = ["2_28_2021_outdoors_run5"]
+TEST_SEQS = ["2_28_2021_outdoors_run0"]
 
 
 if TYPE == 'TRAIN':
     seqs = TRAIN_SEQS
-    file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/train'
+    file_name_metadata = '/home/lactec/Codigos_Mestrado_GabrielH/deep_egomotion_radar_heatmap/metadata/train_without_scaler'
     
 elif TYPE == 'TEST':
     seqs = TEST_SEQS
@@ -65,6 +65,7 @@ path_data = '/home/lactec/dados/mestrado_gabriel/coloradar/'
 calib_path = '/home/lactec/dados/mestrado_gabriel/calib'
 all_radar_params = get_cascade_params(calib_path)
 radar_heatmap_params = all_radar_params['heatmap']
+gt_params = get_groundtruth_params()
 
 
 imu_pairs = []
@@ -74,16 +75,15 @@ all_imu_pairs = []
 data = {}
 neast_imu_data = {}
 all_delta_poses_2D = []
-
+all_delta_poses_6D = []
 for seq in seqs:
     pairs = []
     files = []
     imu_pairs = []
     delta_poses_2D = []
     name = path_data + seq
-    gt_params = get_groundtruth_params()
-    radar_timestamps = get_timestamps(name, radar_heatmap_params)
     gt_timestamps = get_timestamps(name, gt_params)
+    radar_timestamps = get_timestamps(name, radar_heatmap_params)
     imu_data = get_imu(name)
     imu_params = get_imu_params(calib_path)
     imu_timestamps = np.asarray(get_timestamps(name, imu_params))
@@ -131,25 +131,40 @@ for seq in seqs:
         files = valid_files
         imu_pairs = valid_imu_pairs
         delta_poses_2D = get_2D_delta_poses(pairs, radar_gt)
+        delta_poses_6D = get_6D_delta_poses(pairs, radar_gt)
+
+
     all_files = all_files + files
     all_pairs = all_pairs + pairs
     all_imu_pairs = all_imu_pairs + imu_pairs
     all_delta_poses_2D = all_delta_poses_2D + delta_poses_2D.tolist()
+    all_delta_poses_6D = all_delta_poses_6D + delta_poses_6D
+    
 
-if TYPE == 'TRAIN':
-    scaler = MinMaxScaler(np.array(all_delta_poses_2D))
-    pickle.dump(scaler, open('scaler.pkl', 'wb'))
+if TYPE == 'TRAIN' and USE_SCALER:
+    scaler_2D = MinMaxScaler()
+    scaler_2D.fit(np.array(all_delta_poses_2D))
+    all_delta_poses_2D = scaler_2D.transform(np.array(all_delta_poses_2D))
+    pickle.dump(scaler_2D, open('scaler_2D_delta_poses.pkl', 'wb'))
+    scaler_6D = MinMaxScaler()
+    scaler_6D.fit(np.array(all_delta_poses_6D))
+    all_delta_poses_6D = scaler_6D.transform(np.array(all_delta_poses_6D))
+    pickle.dump(scaler_6D, open('scaler_6D_delta_poses.pkl', 'wb'))
+
+elif TYPE == 'TEST' and USE_SCALER:
+    scaler_2D = pickle.load(open('scaler_2D_delta_poses.pkl', 'rb'))
+    scaler_6D = pickle.load(open('scaler_6D_delta_poses.pkl', 'rb'))
+    all_delta_poses_2D = scaler_2D.transform(np.array(all_delta_poses_2D)).tolist()
+    all_delta_poses_6D = scaler_6D.transform(np.array(all_delta_poses_6D)).tolist()
+
 
 data['heatmap_pairs'] = all_pairs
 data['file'] = all_files
 data['imu_data'] = all_imu_pairs
 data['delta_poses_2D'] = all_delta_poses_2D
+data['delta_poses_6D'] = all_delta_poses_6D
+
 df_data = pd.DataFrame(data)
-delta_poses = df_data['delta_poses_2D'].values.copy()
-delta_poses_arr = []
-for delta_p in delta_poses:
-    delta_p = np.array(delta_p)
-    delta_poses_arr.append(delta_p)    
-delta_poses_arr = np.array(delta_poses_arr)
-print(delta_poses_arr)
+delta_poses = df_data['delta_poses_6D'].values.copy()
 df_data.to_pickle(file_name_metadata + '.pkl')
+

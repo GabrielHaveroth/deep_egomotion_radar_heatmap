@@ -8,6 +8,35 @@ from glob import glob
 
 PATH_DATA = '/home/lactec/dados/mestrado_gabriel/'
 seqs = glob(PATH_DATA + 'coloradar/*')
+
+TRAIN_SEQS = ["12_21_2020_ec_hallways_run0",
+              "12_21_2020_ec_hallways_run2",
+              "12_21_2020_ec_hallways_run3",
+              "12_21_2020_ec_hallways_run4",
+              "12_21_2020_arpg_lab_run0",
+              "12_21_2020_arpg_lab_run1",
+              "12_21_2020_arpg_lab_run2",
+              "12_21_2020_arpg_lab_run3",
+              "2_28_2021_outdoors_run0",
+              "2_28_2021_outdoors_run1",
+              "2_28_2021_outdoors_run2",
+              "2_28_2021_outdoors_run3",
+              "2_28_2021_outdoors_run4",
+              "2_28_2021_outdoors_run7",
+              "2_28_2021_outdoors_run8",
+              "2_28_2021_outdoors_run9",
+              "2_23_2021_edgar_classroom_run0",
+              "2_23_2021_edgar_classroom_run1",
+              "2_23_2021_edgar_classroom_run3",
+              "2_23_2021_edgar_classroom_run4",
+              "2_23_2021_edgar_classroom_run5",
+              "2_22_2021_longboard_run2",
+              "2_22_2021_longboard_run3",
+              "2_22_2021_longboard_run4",
+              "2_22_2021_longboard_run5",
+              "2_22_2021_longboard_run6",
+              "2_22_2021_longboard_run7"]
+seqs = TRAIN_SEQS         
 max_values_power = []
 min_values_power = []
 max_values_doppler = []
@@ -28,6 +57,7 @@ def get_max_min_hm(ridx, seq, radar_heatmap_params):
     return max_power, min_power, max_doppler, min_doppler
 
 for seq in seqs:
+    seq = PATH_DATA + "coloradar/" + seq 
     radar_timestamps = get_timestamps(seq, radar_heatmap_params)
     gt_timestamps = get_timestamps(seq, gt_params)
     # get groundtruth poses

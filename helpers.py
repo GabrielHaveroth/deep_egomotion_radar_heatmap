@@ -110,13 +110,14 @@ def get_cartesian_slice_heatmap(radar_heatmap):
 
 
 def get_cartesian_heatmap(radar_heatmap):
-    max_heatmap = radar_heatmap.mean(axis=0)
+    max_heatmap = radar_heatmap.max(axis=0)
     cartesian_hm = scipy.ndimage.geometric_transform(max_heatmap, polar2cartesian, order=3,
                                                      output_shape=(max_heatmap.shape[0],
                                                                    max_heatmap.shape[1]),
                                                      extra_keywords={'inputshape': max_heatmap.shape,
                                                                      'origin': (max_heatmap.shape[0], max_heatmap.shape[1] / 2)})
     return cartesian_hm
+
 
 def get_range_azimute_slice_heatmap(radar_heatmap):
     return radar_heatmap[16, :, :, :]
@@ -127,9 +128,10 @@ def get_range_elevation_slice_heatmap(radar_heatmap):
 
 
 def get_heatmap_poses(name, ht_params):
+    gt_params = get_groundtruth_params()
+    gt_timestamps = get_timestamps(name, gt_params)
     gt_poses = get_groundtruth(name)
     radar_timestamps = get_timestamps(name, ht_params)
-    gt_timestamps = get_timestamps(name, ht_params)
     radar_gt, _ = interpolate_poses(gt_poses,
                                     gt_timestamps,
                                     radar_timestamps)
@@ -172,18 +174,21 @@ def get_data_3D_batch_gt(batches, hm_params, poses_seq):
 def get_data_2D_cart_heatmap(row, ht_params):
     seq = row['file']
     pair = row['heatmap_pairs']
-    power_hm_t1 = (get_heatmap(pair[0], seq, ht_params)[:, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
+    power_hm_t1 = (get_heatmap(pair[0], seq, ht_params)[
+                   :, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
     cart_hm_t1 = get_cartesian_heatmap(power_hm_t1).reshape((128, 128, 1))
-    power_hm_t2 = (get_heatmap(pair[1], seq, ht_params)[:, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
+    power_hm_t2 = (get_heatmap(pair[1], seq, ht_params)[
+                   :, :, :, 0] - MIN_POWER) / (MAX_POWER - MIN_POWER)
     cart_hm_t2 = get_cartesian_heatmap(power_hm_t2).reshape((128, 128, 1))
     cart_hm_t12 = np.concatenate([cart_hm_t1,
                                   cart_hm_t2], -1)
-    
+
     return cart_hm_t12
+
 
 def get_2D_delta_poses(pairs, poses):
     T_p = np.identity(4)
-    abs_poses_gt = [np.zeros((6))] # zero as init position
+    abs_poses_gt = [np.zeros((6))]  # zero as init position
     for pair in pairs:
         t1_idx = pair[0]
         t2_idx = pair[1]
@@ -199,5 +204,13 @@ def get_2D_delta_poses(pairs, poses):
     delta_poses_gt = abs_poses[1:, 3:5] - abs_poses[0:-1, 3:5]
     delta_thetas_gt = abs_poses[1:, 2] - abs_poses[0:-1, 2]
     delta_thetas_gt = delta_thetas_gt.reshape(len(delta_thetas_gt), 1)
-
     return np.concatenate([delta_poses_gt, delta_thetas_gt], axis=1)
+
+
+def get_6D_delta_poses(pairs, poses):
+    delta_poses = []
+    for pair in pairs:
+        delta_pose, _ = get_ground_6d_poses_euler(poses[pair[0]],
+                                                  poses[pair[1]])
+        delta_poses.append(delta_pose.tolist())
+    return delta_poses

@@ -4,6 +4,7 @@
 ./*.npy
 models/test.pkl
 models/train.pkl
+./models
 Dockerfile
 results/history.pkl
 results/loss.npy
