@@ -19,3 +19,4 @@ metadata/test.pkl
 .__pyche__
 ./logs
 ./models
+./.tfrecords
